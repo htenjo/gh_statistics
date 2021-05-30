@@ -1,18 +1,35 @@
 package main
 
 import (
+	"database/sql"
+	"github.com/htenjo/gh_statistics/storage"
 	"github.com/htenjo/gh_statistics/web"
+	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
 )
 
 func main() {
-	initRouter()
+	store := initStorage()
+	defer store.Close()
+	authHandler := web.NewAuthHandler(store)
+	statsHandler := web.NewStatsHandler(store)
+
+	http.HandleFunc("/", authHandler.LoginHandler)
+	http.HandleFunc("/callback", authHandler.CallbackHandler)
+	http.HandleFunc("/home", statsHandler.Handler)
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func initRouter() {
-	http.HandleFunc("/", web.LoginHandler)
-	http.HandleFunc("/callback", web.CallbackHandler)
-	http.HandleFunc("/home", web.Home)
+func initStorage() *storage.Storage {
+	db, err := sql.Open("sqlite3", "./gh.db")
+	checkErr(err)
+	return storage.NewStorage(db)
+}
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

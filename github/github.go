@@ -17,27 +17,17 @@ const (
 	headerAcceptParam  = "Accept"
 	headerAcceptValue  = "application/json"
 	authCodeParam      = "code"
+	userApiUrl         = "GH_USER_URL"
 )
 
-type ghCredentials struct {
-	clientId     string
-	clientSecret string
-}
-
-type OAuthAccessResponse struct {
-	AccessToken string `json:"access_token"`
-	Scope       string `json:"scope"`
-	TokenType   string `json:"token_type"`
-}
-
-var credentials = getCredentials()
+var credentials = getAppCredentials()
 var httpClient = http.Client{}
 
 func AuthorizationUrl() string {
 	return fmt.Sprintf(viper.GetString(authorizeUrl), credentials.clientId)
 }
 
-func Authorize(req *http.Request) (OAuthAccessResponse, error) {
+func Authorize(req *http.Request) (OAuthCredentials, error) {
 	code := req.URL.Query().Get(authCodeParam)
 	accessTokenUrl := getAccessTokenUrl(code)
 	accessTokenRequest, _ := http.NewRequest(http.MethodPost, accessTokenUrl, nil)
@@ -45,21 +35,21 @@ func Authorize(req *http.Request) (OAuthAccessResponse, error) {
 	authTokenResponse, err := httpClient.Do(accessTokenRequest)
 
 	if err != nil {
-		return OAuthAccessResponse{}, fmt.Errorf("::: could not send HTTP request: %v", err)
+		return OAuthCredentials{}, fmt.Errorf("::: could not send HTTP request: %v", err)
 	}
 
-	return decodeAccessTokenResponse(authTokenResponse)
+	var authResponse OAuthCredentials
+	decodeJsonResponse(authTokenResponse, &authResponse)
+	return authResponse, nil
 }
 
-func decodeAccessTokenResponse(res *http.Response) (OAuthAccessResponse, error) {
-	var authResponse OAuthAccessResponse
-
-	if err := json.NewDecoder(res.Body).Decode(&authResponse); err != nil {
-		return authResponse, fmt.Errorf("::: could not parse JSON response: %v", err)
+func decodeJsonResponse(res *http.Response, fillIn interface{}) error {
+	if err := json.NewDecoder(res.Body).Decode(fillIn); err != nil {
+		return fmt.Errorf("::: could not parse JSON response: %v", err)
 	}
 
 	defer res.Body.Close()
-	return authResponse, nil
+	return nil
 }
 
 func getAccessTokenUrl(code string) string {
@@ -69,7 +59,7 @@ func getAccessTokenUrl(code string) string {
 	return authUrl
 }
 
-func getCredentials() *ghCredentials {
+func getAppCredentials() *ghCredentials {
 	viper.SetConfigFile(".env")
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -80,4 +70,28 @@ func getCredentials() *ghCredentials {
 		clientId:     viper.GetString(clientId),
 		clientSecret: viper.GetString(clientSecret),
 	}
+}
+
+func GetUserInfo(authCredentials OAuthCredentials) (GhUser, error) {
+	userResponse, err := authGetRequest(authCredentials, viper.GetString(userApiUrl))
+
+	if err != nil {
+		return GhUser{}, fmt.Errorf("::: Error in HTTP request: %v", err)
+	}
+
+	var user GhUser
+	decodeJsonResponse(userResponse, &user)
+	return user, nil
+}
+
+func authGetRequest(authCredentials OAuthCredentials, url string) (*http.Response, error) {
+	request, _ := http.NewRequest(http.MethodGet, url, nil)
+	request.Header.Set("Authorization", authCredentials.getFullTokenHeader())
+	response, err := httpClient.Do(request)
+
+	if err != nil {
+		return nil, fmt.Errorf("::: Error in HTTP request: %v", err)
+	}
+
+	return response, nil
 }
