@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -27,6 +28,24 @@ var httpClient = http.Client{}
 func AuthorizationUrl() string {
 	//TODO: includes the state param to avoid CSRF
 	return fmt.Sprintf(viper.GetString(authorizeUrl), credentials.clientId)
+}
+
+func GetUserInfo(authCredentials OAuthCredentials) (GhUser, error) {
+	userResponse, err := authGetRequest(authCredentials, viper.GetString(userApiUrl))
+
+	if err != nil {
+		return GhUser{}, fmt.Errorf("::: Error in HTTP request: %v", err)
+	}
+
+	var user GhUser
+	decodeJsonResponse(userResponse, &user)
+	return user, nil
+}
+
+func GetOpenPRs(repoUrl, accessToken string) string {
+	repoUrl = strings.TrimSpace(repoUrl) + "/pulls??state=open&sort=updated"
+	res, _ := getRequest(repoUrl, accessToken)
+	return fmt.Sprintf("This are the PRs %v", res)
 }
 
 func Authorize(c *gin.Context) (OAuthCredentials, error) {
@@ -74,21 +93,21 @@ func getAppCredentials() *ghCredentials {
 	}
 }
 
-func GetUserInfo(authCredentials OAuthCredentials) (GhUser, error) {
-	userResponse, err := authGetRequest(authCredentials, viper.GetString(userApiUrl))
-
-	if err != nil {
-		return GhUser{}, fmt.Errorf("::: Error in HTTP request: %v", err)
-	}
-
-	var user GhUser
-	decodeJsonResponse(userResponse, &user)
-	return user, nil
-}
-
 func authGetRequest(authCredentials OAuthCredentials, url string) (*http.Response, error) {
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("Authorization", authCredentials.getFullTokenHeader())
+	response, err := httpClient.Do(request)
+
+	if err != nil {
+		return nil, fmt.Errorf("::: Error in HTTP request: %v", err)
+	}
+
+	return response, nil
+}
+
+func getRequest(url, authToken string) (*http.Response, error) {
+	request, _ := http.NewRequest(http.MethodGet, url, nil)
+	request.Header.Set("Authorization", "Bearer "+authToken)
 	response, err := httpClient.Do(request)
 
 	if err != nil {

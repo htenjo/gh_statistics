@@ -7,17 +7,27 @@
 <body>
 <h1>{{ .title }}</h1>
 
-<div>
-    <p>{{.repos}}</p>
-</div>
-
-
 <form action="/repos" method="POST">
     <label for="repoUrls">Configure Repositories to Watch</label>
-    <div><textarea id="repoUrls" name="repoUrls" rows="20" cols="80"></textarea></div>
+    <div><textarea id="repoUrls" name="repoUrls" rows="10" cols="70"></textarea></div>
     <div><input type="submit" value="Save"></div>
 </form>
 
+<div>
+    {{range .repos}}
+    <ul>
+        <ui>{{ . }},</ui>
+    </ul>
+    {{else}}
+        <div><strong>no rows</strong></div>
+    {{end}}
+</div>
+
+<div>
+    <pr>
+        {{.prs}}
+    </pr>
+</div>
 
 </body>
 </html>

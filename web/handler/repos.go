@@ -3,8 +3,10 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/htenjo/gh_statistics/definition"
+	"github.com/htenjo/gh_statistics/github"
 	"github.com/htenjo/gh_statistics/storage"
 	"net/http"
+	"strings"
 )
 
 const ReposPath = "/repos"
@@ -20,10 +22,13 @@ func NewRepoHandler(store *storage.Storage) RepoHandler {
 func (h *RepoHandler) ListRepos(c *gin.Context) {
 	sessionId := c.GetString(definition.SessionId)
 	user, _ := h.store.Find(sessionId)
+	repos := strings.Split(user.Repos, ",")
+	prs := github.GetOpenPRs(repos[0], user.AccessToken)
 
 	c.HTML(http.StatusOK, "repos.html", gin.H{
 		"title": "Repositories",
-		"repos": user.Repos,
+		"repos": repos,
+		"prs":   prs,
 	})
 }
 
