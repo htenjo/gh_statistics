@@ -1,7 +1,8 @@
-package web
+package handler
 
 import (
 	"fmt"
+	"github.com/htenjo/gh_statistics/definition"
 	"github.com/htenjo/gh_statistics/storage"
 	"net/http"
 )
@@ -17,7 +18,7 @@ func NewStatsHandler(storage *storage.Storage) StatsHandler {
 }
 
 func (s *StatsHandler) Handler(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(CookieSession)
+	cookie, err := r.Cookie(definition.CookieSession)
 
 	if err != nil {
 		fmt.Fprintf(w, "No session found... <a href='/'>Go Home</a>")

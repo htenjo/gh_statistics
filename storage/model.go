@@ -6,4 +6,5 @@ type User struct {
 	AccessToken string
 	Email       string
 	Username    string
+	Repos       string
 }

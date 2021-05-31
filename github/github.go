@@ -3,6 +3,7 @@ package github
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
@@ -24,11 +25,12 @@ var credentials = getAppCredentials()
 var httpClient = http.Client{}
 
 func AuthorizationUrl() string {
+	//TODO: includes the state param to avoid CSRF
 	return fmt.Sprintf(viper.GetString(authorizeUrl), credentials.clientId)
 }
 
-func Authorize(req *http.Request) (OAuthCredentials, error) {
-	code := req.URL.Query().Get(authCodeParam)
+func Authorize(c *gin.Context) (OAuthCredentials, error) {
+	code := c.Query(authCodeParam)
 	accessTokenUrl := getAccessTokenUrl(code)
 	accessTokenRequest, _ := http.NewRequest(http.MethodPost, accessTokenUrl, nil)
 	accessTokenRequest.Header.Set(headerAcceptParam, headerAcceptValue)
