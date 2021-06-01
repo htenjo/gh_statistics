@@ -8,18 +8,23 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
-	clientId           = "GH_CLIENT_ID"
-	clientSecret       = "GH_CLIENT_SECRET"
-	authorizeUrl       = "GH_AUTHORIZE_URL"
-	authAccessTokenUrl = "GH_ACCESS_TOKEN_URL"
-	authCallbackUrl    = "GH_AUTH_CALLBACK_URL"
-	headerAcceptParam  = "Accept"
-	headerAcceptValue  = "application/json"
-	authCodeParam      = "code"
-	userApiUrl         = "GH_USER_URL"
+	clientId               = "GH_CLIENT_ID"
+	clientSecret           = "GH_CLIENT_SECRET"
+	authorizeUrl           = "GH_AUTHORIZE_URL"
+	authAccessTokenUrl     = "GH_ACCESS_TOKEN_URL"
+	authCallbackUrl        = "GH_AUTH_CALLBACK_URL"
+	ghHtmlBase             = "GH_HTML_BASE_URL"
+	headerAcceptParam      = "Accept"
+	headerContentTypeParam = "Content-Type"
+	headerAuthorization    = "Authorization"
+	headerJsonValue        = "application/json"
+	authCodeParam          = "code"
+	userApiUrl             = "GH_API_USER_URL"
+	ghApiBase              = "GH_API_REPO_URL"
 )
 
 var credentials = getAppCredentials()
@@ -42,17 +47,19 @@ func GetUserInfo(authCredentials OAuthCredentials) (GhUser, error) {
 	return user, nil
 }
 
-func GetOpenPRs(repoUrl, accessToken string) string {
-	repoUrl = strings.TrimSpace(repoUrl) + "/pulls??state=open&sort=updated"
-	res, _ := getRequest(repoUrl, accessToken)
-	return fmt.Sprintf("This are the PRs %v", res)
+func GetOpenPRs(repoUrl, accessToken string) []PullRequestDetail {
+	repoUrl = viper.GetString(ghApiBase) + strings.TrimSpace(repoUrl) + "/pulls?state=open&sort=updated"
+	var openPullRequests []PullRequestDetail
+	jsonRequest(repoUrl, accessToken, &openPullRequests)
+	assignPrOpenFlags(&openPullRequests)
+	return openPullRequests
 }
 
 func Authorize(c *gin.Context) (OAuthCredentials, error) {
 	code := c.Query(authCodeParam)
 	accessTokenUrl := getAccessTokenUrl(code)
 	accessTokenRequest, _ := http.NewRequest(http.MethodPost, accessTokenUrl, nil)
-	accessTokenRequest.Header.Set(headerAcceptParam, headerAcceptValue)
+	accessTokenRequest.Header.Set(headerAcceptParam, headerJsonValue)
 	authTokenResponse, err := httpClient.Do(accessTokenRequest)
 
 	if err != nil {
@@ -95,7 +102,7 @@ func getAppCredentials() *ghCredentials {
 
 func authGetRequest(authCredentials OAuthCredentials, url string) (*http.Response, error) {
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
-	request.Header.Set("Authorization", authCredentials.getFullTokenHeader())
+	request.Header.Set(headerAuthorization, authCredentials.getFullTokenHeader())
 	response, err := httpClient.Do(request)
 
 	if err != nil {
@@ -105,14 +112,33 @@ func authGetRequest(authCredentials OAuthCredentials, url string) (*http.Respons
 	return response, nil
 }
 
-func getRequest(url, authToken string) (*http.Response, error) {
+func jsonRequest(url, accessToken string, target interface{}) error {
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
-	request.Header.Set("Authorization", "Bearer "+authToken)
+	request.Header.Set(headerContentTypeParam, headerJsonValue)
+	request.Header.Set(headerAuthorization, "Bearer "+accessToken)
 	response, err := httpClient.Do(request)
 
 	if err != nil {
-		return nil, fmt.Errorf("::: Error in HTTP request: %v", err)
+		return fmt.Errorf("::: Error in HTTP request: %v", err)
 	}
 
-	return response, nil
+	defer response.Body.Close()
+	return json.NewDecoder(response.Body).Decode(target)
+}
+
+func assignPrOpenFlags(pullRequests *[]PullRequestDetail) {
+	currentTime := time.Now()
+
+	for i := 0; i < len(*pullRequests); i++ {
+		pr := &(*pullRequests)[i]
+		openHours := currentTime.Sub(pr.CreatedAt).Hours()
+
+		if openHours < 4 {
+			pr.ReviewFlag = Green
+		} else if 4 <= openHours && openHours < 8 {
+			pr.ReviewFlag = Yellow
+		} else {
+			pr.ReviewFlag = Red
+		}
+	}
 }

@@ -3,30 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <title>Repositories</title>
+    <style>
+        .btn {
+            display: inline-block;
+            margin-bottom: 0;
+            font-weight: 400;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            -ms-touch-action: manipulation;
+            touch-action: manipulation;
+            cursor: pointer;
+            background-image: none;
+            border: 1px solid transparent;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            border-radius: 4px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            text-decoration: none;
+        }
+        .btn-red {
+            color: #fff;
+            background-color: #d9534f;
+            border-color: #d43f3a;
+        }
+        .btn-yellow {
+            color: #fff;
+            background-color: #f0ad4e;
+            border-color: #eea236;
+        }
+        .btn-green {
+            color: #fff;
+            background-color: #5cb85c;
+            border-color: #4cae4c;
+        }
+        body {
+            margin-top: 50px;
+            margin-left: 100px;
+        }
+        .open_pr {
+            margin-top: 50px;
+        }
+    </style>
 </head>
 <body>
 <h1>{{ .title }}</h1>
 
 <form action="/repos" method="POST">
     <label for="repoUrls">Configure Repositories to Watch</label>
-    <div><textarea id="repoUrls" name="repoUrls" rows="10" cols="70"></textarea></div>
+    <div><textarea id="repoUrls" name="repoUrls" rows="5" cols="70"></textarea></div>
     <div><input type="submit" value="Save"></div>
 </form>
 
-<div>
-    {{range .repos}}
-    <ul>
-        <ui>{{ . }},</ui>
-    </ul>
+<div class="open_pr">
+    {{ range $key, $value := .info}}
+        <li>
+            <strong>{{ $key }}</strong>
+            <ul>
+            {{range $value}}
+                <a href="{{.HtmlUrl}}" class="btn btn-{{.ReviewFlag}}" role="button">{{ .Title }}</a>
+            {{else}}
+                <span>No Open PRs Found</span>
+            {{end}}
+            </ul>
+        </li>
     {{else}}
-        <div><strong>no rows</strong></div>
+    <div><strong>No repos configured</strong></div>
     {{end}}
-</div>
-
-<div>
-    <pr>
-        {{.prs}}
-    </pr>
 </div>
 
 </body>

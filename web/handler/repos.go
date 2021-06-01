@@ -23,12 +23,18 @@ func (h *RepoHandler) ListRepos(c *gin.Context) {
 	sessionId := c.GetString(definition.SessionId)
 	user, _ := h.store.Find(sessionId)
 	repos := strings.Split(user.Repos, ",")
-	prs := github.GetOpenPRs(repos[0], user.AccessToken)
+	info := make(map[string][]github.PullRequestDetail)
+
+	for _, repo := range repos {
+		if pullRequestDetails := github.GetOpenPRs(repo, user.AccessToken); len(pullRequestDetails) > 0 {
+			info[repo] = pullRequestDetails
+		}
+	}
 
 	c.HTML(http.StatusOK, "repos.html", gin.H{
 		"title": "Repositories",
 		"repos": repos,
-		"prs":   prs,
+		"info":  info,
 	})
 }
 
