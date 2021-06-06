@@ -41,3 +41,8 @@ type PullRequestDetail struct {
 	UpdatedAt  time.Time    `json:"updated_at"`
 	ReviewFlag PrReviewFlag `json:"review_flag"`
 }
+
+type RepoPR struct {
+	Repository string
+	Prs        []PullRequestDetail
+}

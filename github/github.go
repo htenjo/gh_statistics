@@ -47,12 +47,15 @@ func GetUserInfo(authCredentials OAuthCredentials) (GhUser, error) {
 	return user, nil
 }
 
-func GetOpenPRs(repoUrl, accessToken string) []PullRequestDetail {
-	repoUrl = viper.GetString(ghApiBase) + strings.TrimSpace(repoUrl) + "/pulls?state=open&sort=updated"
+func GetOpenPRs(repoName, accessToken string, channel chan RepoPR) {
+	repoUrl := viper.GetString(ghApiBase) + strings.TrimSpace(repoName) + "/pulls?state=open&sort=updated"
 	var openPullRequests []PullRequestDetail
 	jsonRequest(repoUrl, accessToken, &openPullRequests)
 	assignPrOpenFlags(&openPullRequests)
-	return openPullRequests
+	channel <- RepoPR{
+		Repository: repoName,
+		Prs:        openPullRequests,
+	}
 }
 
 func Authorize(c *gin.Context) (OAuthCredentials, error) {

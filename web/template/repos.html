@@ -60,11 +60,11 @@
 </form>
 
 <div class="open_pr">
-    {{ range $key, $value := .info}}
+    {{ range .info}}
         <li>
-            <strong>{{ $key }}</strong>
+            <strong>{{ .Repository }}</strong>
             <ul>
-            {{range $value}}
+            {{range .Prs}}
                 <a href="{{.HtmlUrl}}" class="btn btn-{{.ReviewFlag}}" role="button">{{ .Title }}</a>
             {{else}}
                 <span>No Open PRs Found</span>
