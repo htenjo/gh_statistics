@@ -31,6 +31,7 @@ func initGin(store *storage.Storage) {
 		authorized.GET("/", handler.IndexHandler)
 		authorized.GET(handler.ReposPath, repoHandler.ListRepos)
 		authorized.POST(handler.ReposPath, repoHandler.CreateRepos)
+		authorized.POST(handler.ReposOpenPRNotification, repoHandler.SendOpenPRNotification)
 	}
 
 	router.Run(":8080")

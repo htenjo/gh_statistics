@@ -26,25 +26,30 @@
             user-select: none;
             text-decoration: none;
         }
+
         .btn-red {
             color: #fff;
             background-color: #d9534f;
             border-color: #d43f3a;
         }
+
         .btn-yellow {
             color: #fff;
             background-color: #f0ad4e;
             border-color: #eea236;
         }
+
         .btn-green {
             color: #fff;
             background-color: #5cb85c;
             border-color: #4cae4c;
         }
+
         body {
             margin-top: 50px;
             margin-left: 100px;
         }
+
         .open_pr {
             margin-top: 50px;
         }
@@ -55,24 +60,30 @@
 
 <form action="/repos" method="POST">
     <label for="repoUrls">Configure Repositories to Watch</label>
-    <div><textarea id="repoUrls" name="repoUrls" rows="5" cols="70"></textarea></div>
+    <div>
+
+        <textarea id="repoUrls" name="repoUrls" rows="10" cols="70">{{range .info}}{{.RepositoryName}},
+{{end}}</textarea>
+    </div>
     <div><input type="submit" value="Save"></div>
 </form>
 
 <div class="open_pr">
     {{ range .info}}
-        <li>
-            <strong>{{ .Repository }}</strong>
-            <ul>
-            {{range .Prs}}
-                <a href="{{.HtmlUrl}}" class="btn btn-{{.ReviewFlag}}" role="button">{{ .Title }}</a>
-            {{else}}
-                <span>No Open PRs Found</span>
-            {{end}}
-            </ul>
-        </li>
+        {{ if .Prs}}
+            <li>
+                <strong>{{ .RepositoryName }}</strong>
+                <ul>
+                    {{range .Prs}}
+                    <a href="{{.HtmlUrl}}" class="btn btn-{{.ReviewFlag}}" role="button">{{ .Title }}</a>
+                    {{else}}
+                    <span>No Open PRs Found</span>
+                    {{end}}
+                </ul>
+            </li>
+        {{ end}}
     {{else}}
-    <div><strong>No repos configured</strong></div>
+        <div><strong>No repos configured</strong></div>
     {{end}}
 </div>
 

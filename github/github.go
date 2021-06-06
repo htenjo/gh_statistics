@@ -53,8 +53,9 @@ func GetOpenPRs(repoName, accessToken string, channel chan RepoPR) {
 	jsonRequest(repoUrl, accessToken, &openPullRequests)
 	assignPrOpenFlags(&openPullRequests)
 	channel <- RepoPR{
-		Repository: repoName,
-		Prs:        openPullRequests,
+		RepositoryName: repoName,
+		RepositoryURL:  repoUrl,
+		Prs:            openPullRequests,
 	}
 }
 

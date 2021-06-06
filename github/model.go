@@ -43,6 +43,7 @@ type PullRequestDetail struct {
 }
 
 type RepoPR struct {
-	Repository string
-	Prs        []PullRequestDetail
+	RepositoryName string
+	RepositoryURL  string
+	Prs            []PullRequestDetail
 }
