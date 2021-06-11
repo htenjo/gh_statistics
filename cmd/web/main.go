@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"flag"
 	"github.com/gin-gonic/gin"
 	"github.com/htenjo/gh_statistics/storage"
 	"github.com/htenjo/gh_statistics/web/handler"
@@ -11,14 +10,7 @@ import (
 )
 
 func main() {
-	flag.Parse()
-
 	store := initStorage()
-	defer store.Close()
-	initGin(store)
-}
-
-func initGin(store *storage.Storage) {
 	authHandler := middleware.NewAuthHandler(store)
 	repoHandler := handler.NewRepoHandler(store)
 
