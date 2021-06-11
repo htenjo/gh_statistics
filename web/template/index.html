@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+<h1>{{ .title }}</h1>
+<p>
+    Go to Repos: <a href="/repos">Repositories</a>
+</p>
+<p>
+    <form method="post" action="/repos/open-pr/notification">
+        <button type="submit">Send notification </button>
+    </form>
+</p>
+</body>
+</html>
+
