@@ -32,6 +32,7 @@ var httpClient = http.Client{}
 
 func AuthorizationUrl() string {
 	//TODO: includes the state param to avoid CSRF
+	log.Println("::: Redirect to GitHub to authorize")
 	return fmt.Sprintf(viper.GetString(authorizeUrl), credentials.clientId)
 }
 
@@ -47,16 +48,26 @@ func GetUserInfo(authCredentials OAuthCredentials) (GhUser, error) {
 	return user, nil
 }
 
-func GetOpenPRs(repoName, accessToken string, channel chan RepoPR) {
+func GetOpenPRs(repoName, accessToken string, channel chan RepoPRResponse) {
+	var response RepoPRResponse
+
+	if strings.TrimSpace(repoName) == "" {
+		response.Error = fmt.Errorf("invalid repo name")
+		channel <- response
+		return
+	}
+
 	repoUrl := viper.GetString(ghApiBase) + strings.TrimSpace(repoName) + "/pulls?state=open&sort=updated"
 	var openPullRequests []PullRequestDetail
 	jsonRequest(repoUrl, accessToken, &openPullRequests)
 	assignPrOpenFlags(&openPullRequests)
-	channel <- RepoPR{
+	response.Repo = RepoPR{
 		RepositoryName: repoName,
 		RepositoryURL:  repoUrl,
 		Prs:            openPullRequests,
 	}
+
+	channel <- response
 }
 
 func Authorize(c *gin.Context) (OAuthCredentials, error) {
@@ -67,7 +78,7 @@ func Authorize(c *gin.Context) (OAuthCredentials, error) {
 	authTokenResponse, err := httpClient.Do(accessTokenRequest)
 
 	if err != nil {
-		return OAuthCredentials{}, fmt.Errorf("::: could not send HTTP request: %v", err)
+		return OAuthCredentials{}, fmt.Errorf("::: Could not send HTTP request: %v", err)
 	}
 
 	var authResponse OAuthCredentials

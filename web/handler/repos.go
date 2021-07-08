@@ -6,6 +6,7 @@ import (
 	"github.com/htenjo/gh_statistics/github"
 	"github.com/htenjo/gh_statistics/slack"
 	"github.com/htenjo/gh_statistics/storage"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -54,15 +55,21 @@ func (h *RepoHandler) getOpenPRInformation(c *gin.Context) []github.RepoPR {
 	repos := strings.Split(user.Repos, ",")
 
 	info := make([]github.RepoPR, 0)
-	prChannel := make(chan github.RepoPR)
+	prChannel := make(chan github.RepoPRResponse)
 
 	for _, repoName := range repos {
 		go github.GetOpenPRs(repoName, user.AccessToken, prChannel)
 	}
 
 	for i := 0; i < len(repos); i++ {
-		repoPR := <-prChannel
-		info = append(info, repoPR)
+		repoResponse := <-prChannel
+
+		if repoResponse.Error != nil {
+			log.Print(repoResponse.Error)
+			continue
+		}
+
+		info = append(info, repoResponse.Repo)
 	}
 
 	return info

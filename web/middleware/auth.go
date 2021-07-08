@@ -5,6 +5,7 @@ import (
 	"github.com/htenjo/gh_statistics/definition"
 	"github.com/htenjo/gh_statistics/github"
 	"github.com/htenjo/gh_statistics/storage"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -18,6 +19,7 @@ func NewAuthHandler(storage *storage.Storage) AuthHandler {
 }
 
 func (a *AuthHandler) CallbackHandler(c *gin.Context) {
+	log.Println("::: Handling Github Callback")
 	credentials, err := github.Authorize(c)
 
 	if err != nil {
