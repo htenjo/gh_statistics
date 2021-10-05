@@ -47,3 +47,8 @@ type RepoPR struct {
 	RepositoryURL  string
 	Prs            []PullRequestDetail
 }
+
+type RepoPRResponse struct {
+	Repo  RepoPR
+	Error error
+}
