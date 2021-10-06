@@ -104,6 +104,10 @@ func WebPort() int {
 	return getValueInt(webPort)
 }
 
+func AuthTempToken() string {
+	return getValue("CRON_TOKEN")
+}
+
 func getValue(key string) string {
 	//return viper.GetString(ghAuthorizeUrl)
 	return os.Getenv(key)

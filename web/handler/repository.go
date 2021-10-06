@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/htenjo/gh_statistics/config"
 	"github.com/htenjo/gh_statistics/definition"
 	"github.com/htenjo/gh_statistics/github"
 	"github.com/htenjo/gh_statistics/repository"
@@ -52,6 +53,25 @@ func (h *RepoHandler) CreateRepos(c *gin.Context) {
 func (h *RepoHandler) SendOpenPRNotification(c *gin.Context) {
 	info := h.getOpenPRInformation(c)
 	slack.SendSlackMessage("Open PRs", &info)
+}
+
+// SendPRNotification Temp handler for easy job notifications
+func (h *RepoHandler) SendPRNotification(c *gin.Context) {
+	sessionId := c.GetHeader("x-session-id")
+	authToken := c.GetHeader("x-cron-token")
+
+	if sessionId == "" {
+		c.JSON(400, gin.H{"message": "Required header not found"})
+		return
+	}
+
+	if authToken != config.AuthTempToken() {
+		c.JSON(401, gin.H{"message": "User not authorized"})
+		return
+	}
+
+	c.Set(definition.SessionId, sessionId)
+	h.SendOpenPRNotification(c)
 }
 
 func (h *RepoHandler) getOpenPRInformation(c *gin.Context) []github.RepoPR {
