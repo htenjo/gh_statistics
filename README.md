@@ -10,8 +10,28 @@ Repo to authenticate a user and configure basic useful statistics from GitHub
 
 ## How to run
 ``` bash
-$ make build-cli
-$ make run-cli sid=<some-gh-profile-id-configured-from-web>
+$ make build-bin
+$ ./bin/gh_statistics
+```
+
+## Required Env Vars
+``` bash 
+GH_CLIENT_ID
+GH_CLIENT_SECRET
+GH_AUTHORIZE_URL
+GH_ACCESS_TOKEN_URL
+GH_API_USER_URL
+GH_API_REPO_URL
+GH_HTML_BASE_URL
+GH_AUTH_CALLBACK_URL
+
+SLACK_PRIVATE_WEBHOOK_URL
+SLACK_BACKEND_WEBHOOK_URL
+SLACK_WEBHOOK_USE_PRIVATE
+
+DATABASE_URL
+PORT
+CRON_TOKEN
 ```
 
 ## How to install postgres
