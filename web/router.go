@@ -3,10 +3,10 @@ package web
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/htenjo/gh_statistics/config"
 	"github.com/htenjo/gh_statistics/repository"
 	"github.com/htenjo/gh_statistics/web/handler"
 	"github.com/htenjo/gh_statistics/web/middleware"
-	"github.com/spf13/viper"
 )
 
 func Init(store *repository.UserRepository) {
@@ -31,5 +31,5 @@ func Init(store *repository.UserRepository) {
 }
 
 func port() string {
-	return fmt.Sprintf(":%d", viper.GetInt("PORT"))
+	return fmt.Sprintf(":%d", config.WebPort())
 }

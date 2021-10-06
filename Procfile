@@ -1,1 +1,1 @@
-web: cmd/gh-stats
+web: bin/gh_statistics

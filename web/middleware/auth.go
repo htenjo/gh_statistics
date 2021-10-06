@@ -48,5 +48,5 @@ func (a *AuthHandler) persistGhUser(ghUser github.GhUser, credentials github.OAu
 }
 
 func persistCookie(c *gin.Context, sessionId string) {
-	c.SetCookie(definition.CookieSession, sessionId, 0, "/", "localhost", true, true)
+	c.SetCookie(definition.CookieSession, sessionId, 0, "/", " pr-statistics.herokuapp.com", true, true)
 }

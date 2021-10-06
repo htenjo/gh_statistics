@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/htenjo/gh_statistics/config"
-	"github.com/spf13/viper"
 	"log"
 	"net/http"
 	"strings"
@@ -13,17 +12,11 @@ import (
 )
 
 const (
-	authorizeUrl           = "GH_AUTHORIZE_URL"
-	authAccessTokenUrl     = "GH_ACCESS_TOKEN_URL"
-	authCallbackUrl        = "GH_AUTH_CALLBACK_URL"
-	ghHtmlBase             = "GH_HTML_BASE_URL"
 	headerAcceptParam      = "Accept"
 	headerContentTypeParam = "Content-Type"
 	headerAuthorization    = "Authorization"
 	headerJsonValue        = "application/json"
 	authCodeParam          = "code"
-	userApiUrl             = "GH_API_USER_URL"
-	ghApiBase              = "GH_API_REPO_URL"
 )
 
 var httpClient = http.Client{}
@@ -31,11 +24,11 @@ var httpClient = http.Client{}
 func AuthorizationUrl() string {
 	//TODO: includes the state param to avoid CSRF
 	log.Println("::: Redirect to GitHub to authorize")
-	return fmt.Sprintf(viper.GetString(authorizeUrl), config.GhClientId())
+	return fmt.Sprintf(config.GhAuthorizeUrl(), config.GhClientId())
 }
 
 func GetUserInfo(authCredentials OAuthCredentials) (GhUser, error) {
-	userResponse, err := authGetRequest(authCredentials, viper.GetString(userApiUrl))
+	userResponse, err := authGetRequest(authCredentials, config.GhUserApiUrl())
 
 	if err != nil {
 		return GhUser{}, fmt.Errorf("::: Error in HTTP request: %v", err)
@@ -55,7 +48,7 @@ func GetOpenPRs(repoName, accessToken string, channel chan RepoPRResponse) {
 		return
 	}
 
-	repoUrl := viper.GetString(ghApiBase) + strings.TrimSpace(repoName) + "/pulls?state=open&sort=updated"
+	repoUrl := config.GhApiBase() + strings.TrimSpace(repoName) + "/pulls?state=open&sort=updated"
 	var openPullRequests []PullRequestDetail
 	jsonRequest(repoUrl, accessToken, &openPullRequests)
 	assignPrOpenFlags(&openPullRequests)
@@ -94,9 +87,10 @@ func decodeJsonResponse(res *http.Response, fillIn interface{}) error {
 }
 
 func getAccessTokenUrl(code string) string {
-	authCallback := viper.GetString(authCallbackUrl)
-	authUrl := viper.GetString(authAccessTokenUrl)
+	authCallback := config.GhCallbackUrl()
+	authUrl := config.GhAccessTokenUrl()
 	authUrl = fmt.Sprintf(authUrl, config.GhClientId(), config.GhClientSecret(), code, authCallback)
+	log.Printf("::: accessTokenUrl = [%s]", authUrl)
 	return authUrl
 }
 

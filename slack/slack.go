@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/htenjo/gh_statistics/config"
 	"github.com/htenjo/gh_statistics/github"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"log"
 	"math"
@@ -99,7 +99,7 @@ func getButtonElements(prDetails *[]github.PullRequestDetail) []ButtonBlock {
 }
 
 func sendNotification(message []byte) {
-	resp, err := http.Post(getWebhookUrl(), "application/json", bytes.NewReader(message))
+	resp, err := http.Post(config.SlackWebhookUrl(), "application/json", bytes.NewReader(message))
 
 	if err != nil {
 		log.Fatal(err)
@@ -109,12 +109,4 @@ func sendNotification(message []byte) {
 	defer resp.Body.Close()
 
 	fmt.Println(string(bodyText))
-}
-
-func getWebhookUrl() string {
-	if viper.GetBool("SLACK_WEBHOOK_PRIVATE") {
-		return viper.GetString("SLACK_PRIVATE_WEBHOOK")
-	}
-
-	return viper.GetString("SLACK_BE_WEBHOOK")
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	config.InitConfig(".")
+	config.InitConfig()
 	store := config.InitRepository()
 	defer store.Close()
 	web.Init(store)

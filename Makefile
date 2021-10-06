@@ -1,6 +1,6 @@
 build-bin:
 	echo "::: Building web project -> bin"
-	go build -o cmd/gh-stats -v .
+	go build -o bin/gh_statistics -v .
 
 run-heroku:
 	echo "::: Running web project in heroku local"
