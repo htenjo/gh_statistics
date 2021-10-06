@@ -1,19 +1,10 @@
-build-web:
-	echo "::: Compiling web project"
-	go build -o ./cmd/web/gh-web ./cmd/web/main.go
+build-bin:
+	echo "::: Building web project -> bin"
+	go build -o cmd/gh-stats -v .
 
-build-cli:
-	echo "::: Compiling CLI project"
-	go build -o ./cmd/cli/gh-cli ./cmd/cli/main.go
+run-heroku:
+	echo "::: Running web project in heroku local"
+	heroku local web
 
-
-run-web:
-	echo "::: Running web project"
-	go run ./cmd/web
-
-run-cli:
-	echo "::: Running CLI project"
-	go run ./cmd/cli -sid=$$sid
-
-all-web: build-web run-web
-all-cli: build-cli run-cli
+# all-web: build-web run-web
+# all-cli: build-cli run-cli

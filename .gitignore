@@ -14,7 +14,4 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 .idea
-.env
-gh.db
-gh-cli
-gh-web
+config.env

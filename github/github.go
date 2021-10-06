@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/htenjo/gh_statistics/config"
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
@@ -12,8 +13,6 @@ import (
 )
 
 const (
-	clientId               = "GH_CLIENT_ID"
-	clientSecret           = "GH_CLIENT_SECRET"
 	authorizeUrl           = "GH_AUTHORIZE_URL"
 	authAccessTokenUrl     = "GH_ACCESS_TOKEN_URL"
 	authCallbackUrl        = "GH_AUTH_CALLBACK_URL"
@@ -27,13 +26,12 @@ const (
 	ghApiBase              = "GH_API_REPO_URL"
 )
 
-var credentials = getAppCredentials()
 var httpClient = http.Client{}
 
 func AuthorizationUrl() string {
 	//TODO: includes the state param to avoid CSRF
 	log.Println("::: Redirect to GitHub to authorize")
-	return fmt.Sprintf(viper.GetString(authorizeUrl), credentials.clientId)
+	return fmt.Sprintf(viper.GetString(authorizeUrl), config.GhClientId())
 }
 
 func GetUserInfo(authCredentials OAuthCredentials) (GhUser, error) {
@@ -98,21 +96,8 @@ func decodeJsonResponse(res *http.Response, fillIn interface{}) error {
 func getAccessTokenUrl(code string) string {
 	authCallback := viper.GetString(authCallbackUrl)
 	authUrl := viper.GetString(authAccessTokenUrl)
-	authUrl = fmt.Sprintf(authUrl, credentials.clientId, credentials.clientSecret, code, authCallback)
+	authUrl = fmt.Sprintf(authUrl, config.GhClientId(), config.GhClientSecret(), code, authCallback)
 	return authUrl
-}
-
-func getAppCredentials() *ghCredentials {
-	viper.SetConfigFile(".env")
-
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("::: Error loading configuration (.env) file")
-	}
-
-	return &ghCredentials{
-		clientId:     viper.GetString(clientId),
-		clientSecret: viper.GetString(clientSecret),
-	}
 }
 
 func authGetRequest(authCredentials OAuthCredentials, url string) (*http.Response, error) {

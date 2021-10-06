@@ -3,16 +3,16 @@ package cli
 import (
 	"github.com/htenjo/gh_statistics/github"
 	"github.com/htenjo/gh_statistics/slack"
-	"github.com/htenjo/gh_statistics/storage"
+	"github.com/htenjo/gh_statistics/repository"
 	"log"
 	"strings"
 )
 
 type Handler struct {
-	store *storage.Storage
+	store *repository.UserRepository
 }
 
-func NewHandler(store *storage.Storage) Handler {
+func NewHandler(store *repository.UserRepository) Handler {
 	return Handler{store: store}
 }
 

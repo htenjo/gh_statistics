@@ -1,11 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"github.com/htenjo/gh_statistics/cli"
-	"github.com/htenjo/gh_statistics/storage"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/htenjo/gh_statistics/config"
 )
 
 func main() {
@@ -16,17 +14,7 @@ func main() {
 		panic("::: Missing SID flag")
 	}
 
-	store := initStorage()
+	store := config.InitRepository()
 	repoHandler := cli.NewHandler(store)
 	repoHandler.SendOpenPRNotification(*sid)
-}
-
-func initStorage() *storage.Storage {
-	db, err := sql.Open("sqlite3", "./gh.db")
-
-	if err != nil {
-		panic(err)
-	}
-
-	return storage.NewStorage(db)
 }
